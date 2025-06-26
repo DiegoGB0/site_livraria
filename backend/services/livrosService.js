@@ -2,12 +2,12 @@ const livrosRepo = require('../repositories/livrosRepo');
 
 const livrosService = {
   listarLivros: async () => {
-    return await livrosRepo.listarTodos();
+    return await livrosRepo.listarTodosDisponiveis();
   },
 
   listarLivrosDisponiveis: async () => {
-    return await livrosRepo.listarDisponiveis();
-  },
+  return await livrosRepo.listarTodosDisponiveis();
+},
 
   buscarLivrosPorId: async (id) => {
     const livro = await livrosRepo.buscarPorId(id);

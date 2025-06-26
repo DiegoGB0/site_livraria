@@ -14,7 +14,7 @@ router.post('/', async (req, res) => {
 
     if (rows.length > 0) {
       const usuario = rows[0];
-      res.status(200).json({ id: usuario.id, nome: usuario.nome });
+      res.status(200).json({ id: usuario.usuario_id, nome: usuario.nome });
     } else {
       res.status(401).json({ erro: 'Credenciais inválidas' });
     }

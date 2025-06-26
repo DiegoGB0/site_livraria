@@ -7,9 +7,9 @@ const usuariosRepo = {
         return rows;
     },
 
-    async buscarPorId(id) {
-        const [rows] = await db.promise().query('SELECT * FROM usuarios WHERE id = ?', [id]);
-        return rows[0]; // Retorna o primeiro usuário encontrado
+   async buscarPorId(id) {
+    const [rows] = await db.promise().query('SELECT * FROM usuarios WHERE usuario_id = ?', [id]);
+    return rows[0];
     },
 
     async criar(usuario) {

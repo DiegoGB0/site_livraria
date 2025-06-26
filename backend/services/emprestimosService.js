@@ -37,8 +37,8 @@ const emprestimosService = {
     }
 
     const novoEmprestimo = {
-      usuarioId,
-      livroId,
+      usuario_id,
+      livro_id,
       dataEmprestimo,
       dataDevolucao
     };
