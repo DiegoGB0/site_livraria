@@ -26,7 +26,7 @@
     <nav>
       <a href="historico.html">Histórico</a>
       <a href="anunciar.html">Anunciar</a>
-      <a href="Config.html">Conta</a>
+      <a href="login.html">Conta</a>
       <a href="login.html">Sair</a>
     </nav>
   </header>
@@ -83,14 +83,15 @@
         const resposta = await fetch("http://localhost:3000/emprestimos", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ usuarioId: idUsuario, livroId: idLivro, dataEmprestimo: hoje })
+          body: JSON.stringify({ id_usuario: idUsuario, id_livro: livro_id, dataEmprestimo: hoje })
         });
 
         if (resposta.ok) {
           alert("Livro emprestado com sucesso!");
           carregarLivrosDisponiveis();
         } else {
-          alert("Erro ao realizar o empréstimo.");
+          const erroMsg = await resposta.text();
+          alert("Erro ao realizar o empréstimo: " + erroMsg);
         }
       } catch (erro) {
         console.error(erro);

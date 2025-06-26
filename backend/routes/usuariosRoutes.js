@@ -1,27 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
+const usuariosController = require('../controllers/usuariosController');
 
-// ROTA DE LOGIN
-router.post('/', async (req, res) => {
-  const { email, senha } = req.body;
-
-  try {
-    const [rows] = await db.promise().query(
-      'SELECT * FROM usuarios WHERE email = ? AND senha = ?',
-      [email, senha]
-    );
-
-    if (rows.length > 0) {
-      const usuario = rows[0];
-      res.status(200).json({ id: usuario.usuario_id, nome: usuario.nome });
-    } else {
-      res.status(401).json({ erro: 'Credenciais inválidas' });
-    }
-  } catch (erro) {
-    console.error('Erro no login:', erro);
-    res.status(500).json({ erro: 'Erro interno do servidor' });
-  }
-});
+// Rotas REST para usuários
+router.get('/', usuariosController.listar); // Lista todos usuários
+router.get('/:id', usuariosController.buscarPorId); // Busca por id
+router.post('/', usuariosController.criar); // Cadastro de novo usuário
+router.put('/:id', usuariosController.atualizar); // Atualiza usuário
+router.delete('/:id', usuariosController.deletar); // Remove usuário
 
 module.exports = router;

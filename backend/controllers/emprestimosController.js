@@ -25,8 +25,25 @@ const emprestimosController = {
 
   async criar(req, res) {
     const dados = req.body;
+
+    // Mostra o corpo da requisição recebido, útil para debugar
+    console.log("📥 Dados recebidos no body:", dados);
+
     try {
-      const novoEmprestimo = await emprestimosService.criar(dados);
+      // Aceita tanto usuario_id/livro_id quanto usuarioId/livroId
+      const emprestimoFormatado = {
+        id_usuario: dados.usuario_id || dados.usuarioId,
+        id_livro: dados.livro_id || dados.livroId,
+        dataEmprestimo: dados.dataEmprestimo,
+        dataDevolucao: dados.dataDevolucao || null
+      };
+
+      // Validação básica
+      if (!emprestimoFormatado.id_usuario || !emprestimoFormatado.id_livro || !emprestimoFormatado.dataEmprestimo) {
+        return res.status(400).json({ erro: "Usuário, livro e data de empréstimo são obrigatórios" });
+      }
+
+      const novoEmprestimo = await emprestimosService.criar(emprestimoFormatado);
       res.status(201).json(novoEmprestimo);
     } catch (erro) {
       console.error('Erro ao criar empréstimo:', erro);

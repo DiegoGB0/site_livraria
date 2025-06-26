@@ -1,5 +1,10 @@
 const db = require('../db');
 
+// Função simples para gerar um ID de 8 dígitos aleatórios
+function gerarId8Digitos() {
+    return Math.floor(10000000 + Math.random() * 90000000);
+}
+
 const livrosRepo = {
     async listarTodosDisponiveis() {
         const [rows] = await db.promise().query(`
@@ -17,8 +22,10 @@ const livrosRepo = {
     },
 
     async criar(livro) {
-        const [result] = await db.promise().query('INSERT INTO livros SET ?', livro);
-        return { livro_id: result.insertId, ...livro };
+        // Gera o id de 8 dígitos antes de inserir
+        livro.livro_id = gerarId8Digitos();
+        await db.promise().query('INSERT INTO livros SET ?', livro);
+        return { livro_id: livro.livro_id, ...livro };
     },
 
     async atualizar(id, dadosAtualizados) {

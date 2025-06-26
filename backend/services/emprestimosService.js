@@ -17,30 +17,38 @@ const emprestimosService = {
   },
 
   async criar(dados) {
-    const { usuarioId, livroId, dataEmprestimo, dataDevolucao } = dados;
+    const {
+      id_usuario,
+      id_livro,
+      dataEmprestimo,
+      dataDevolucao,
+      devolvido
+    } = dados;
 
-    // Validações
-    if (!usuarioId || !livroId || !dataEmprestimo) {
+    // Validação dos campos obrigatórios
+    if (!id_usuario || !id_livro || !dataEmprestimo) {
       throw new Error('Usuário, livro e data de empréstimo são obrigatórios');
     }
 
     // Verifica se o usuário existe
-    const usuario = await usuariosRepo.buscarPorId(usuarioId);
+    const usuario = await usuariosRepo.buscarPorId(id_usuario);
     if (!usuario) {
       throw new Error('Usuário não encontrado');
     }
 
     // Verifica se o livro existe
-    const livro = await livrosRepo.buscarPorId(livroId);
+    const livro = await livrosRepo.buscarPorId(id_livro);
     if (!livro) {
       throw new Error('Livro não encontrado');
     }
 
+    // Cria objeto no formato esperado pelo banco (snake_case)
     const novoEmprestimo = {
-      usuario_id,
-      livro_id,
-      dataEmprestimo,
-      dataDevolucao
+      id_usuario,
+      id_livro,
+      data_emprestimo: dataEmprestimo,
+      data_devolucao: dataDevolucao || null,
+      devolvido: devolvido ?? 0 // por padrão 0 = não devolvido
     };
 
     return await emprestimosRepo.criar(novoEmprestimo);
@@ -52,7 +60,30 @@ const emprestimosService = {
       throw new Error('Empréstimo não encontrado');
     }
 
-    return await emprestimosRepo.atualizar(id, dadosAtualizados);
+    // Converte nomes camelCase para os nomes usados no banco (snake_case)
+    const dadosConvertidos = {};
+
+    if (dadosAtualizados.dataEmprestimo !== undefined) {
+      dadosConvertidos.data_emprestimo = dadosAtualizados.dataEmprestimo;
+    }
+
+    if (dadosAtualizados.dataDevolucao !== undefined) {
+      dadosConvertidos.data_devolucao = dadosAtualizados.dataDevolucao;
+    }
+
+    if (dadosAtualizados.id_usuario !== undefined) {
+      dadosConvertidos.id_usuario = dadosAtualizados.id_usuario;
+    }
+
+    if (dadosAtualizados.id_livro !== undefined) {
+      dadosConvertidos.id_livro = dadosAtualizados.id_livro;
+    }
+
+    if (dadosAtualizados.devolvido !== undefined) {
+      dadosConvertidos.devolvido = dadosAtualizados.devolvido;
+    }
+
+    return await emprestimosRepo.atualizar(id, dadosConvertidos);
   },
 
   async deletar(id) {
