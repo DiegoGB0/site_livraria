@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anunciar Livro</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background-color: #f9f9f9; }
+    header { background-color: #4CAF50; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { margin: 0; font-size: 20px; }
+    nav a { color: white; margin-left: 15px; text-decoration: none; font-weight: bold; }
+    nav a:hover { text-decoration: underline; }
+    .container { max-width: 600px; margin: 40px auto; background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    h2 { text-align: center; margin-bottom: 30px; color: #333; }
+    label { display: block; margin-bottom: 8px; font-weight: bold; }
+    input { width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+    button { width: 100%; padding: 12px; font-size: 16px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background-color: #45a049; }
+    .success-message { text-align: center; color: green; margin-top: 15px; display: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Anunciar Livro</h1>
+    <nav>
+      <a href="home.html">Início</a>
+      <a href="historico.html">Histórico</a>
+      <a href="config.html">Conta</a>
+      <a href="login.html">Sair</a>
+    </nav>
+  </header>
+  <div class="container">
+    <h2>Preencha os dados do livro</h2>
+    <form id="formLivro">
+      <label for="titulo">Título</label>
+      <input type="text" id="titulo" required>
+      <label for="autor">Autor</label>
+      <input type="text" id="autor" required>
+      <label for="genero">Gênero</label>
+      <input type="text" id="genero" required>
+      <label for="ano_publicacao">Ano de Publicação</label>
+      <input type="number" id="ano_publicacao" required min="1000" max="9999">
+      <button type="submit">Anunciar</button>
+    </form>
+    <div class="success-message" id="mensagemSucesso">Livro anunciado com sucesso!</div>
+  </div>
+  <script>
+    const form = document.getElementById("formLivro");
+    const msg = document.getElementById("mensagemSucesso");
+
+    form.addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const titulo = document.getElementById("titulo").value.trim();
+      const autor = document.getElementById("autor").value.trim();
+      const genero = document.getElementById("genero").value.trim();
+      const ano_publicacao = parseInt(document.getElementById("ano_publicacao").value.trim());
+
+      try {
+        const resposta = await fetch("http://localhost:3000/livros", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ titulo, autor, genero, ano_publicacao })
+        });
+
+        if (resposta.ok) {
+          msg.style.display = "block";
+          form.reset();
+          setTimeout(() => {
+            msg.style.display = "none";
+            window.location.href = "home.html";
+          }, 1500);
+        } else {
+          alert("Erro ao anunciar o livro.");
+        }
+      } catch (erro) {
+        console.error(erro);
+        alert("Erro ao conectar ao servidor.");
+      }
+    });
+  </script>
+</body>
+</html>

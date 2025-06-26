@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cadastro de Conta</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .form-container {
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 300px;
+    }
+    .form-container h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .form-container input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .form-container button {
+      width: 100%;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    .form-container button:hover {
+      background-color: #45a049;
+    }
+    .message {
+      text-align: center;
+      margin-top: 15px;
+      color: red;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-container">
+    <h2>Criar Conta</h2>
+    <input type="text" id="nome" placeholder="Nome completo" required />
+    <input type="text" id="email" placeholder="Email" required />
+    <input type="text" id="usuario" placeholder="Nome de usuário" required />
+    <input type="password" id="senha" placeholder="Senha" required />
+    <button onclick="salvarConta()">Cadastrar</button>
+    <div class="message" id="mensagem"></div>
+  </div>
+
+  <script>
+    async function salvarConta() {
+      const nome = document.getElementById("nome").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const usuario = document.getElementById("usuario").value.trim();
+      const senha = document.getElementById("senha").value.trim();
+      const mensagem = document.getElementById("mensagem");
+
+      if (!nome || !email || !usuario || !senha) {
+        mensagem.textContent = "Preencha todos os campos!";
+        return;
+      }
+
+      try {
+        const response = await fetch("http://localhost:3000/usuarios", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nome, email, usuario, senha })
+        });
+
+        if (response.ok) {
+          mensagem.style.color = "green";
+          mensagem.textContent = "Conta criada com sucesso!";
+          setTimeout(() => {
+            window.location.href = "login.html";
+          }, 1000);
+        } else {
+          const result = await response.json();
+          mensagem.textContent = result.erro || "Erro ao cadastrar usuário.";
+        }
+      } catch (err) {
+        console.error("Erro de conexão:", err);
+        mensagem.textContent = "Erro ao conectar com o servidor.";
+      }
+    }
+  </script>
+</body>
+</html>

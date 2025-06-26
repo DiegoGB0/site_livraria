@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home - Biblioteca</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background-color: #f2f2f2; }
+    header { background-color: #4CAF50; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+    header h1 { margin: 0; font-size: 20px; }
+    nav a { color: white; margin-left: 15px; text-decoration: none; font-weight: bold; }
+    nav a:hover { text-decoration: underline; }
+    .content { padding: 30px; }
+    .book-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+    .book { background-color: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
+    .book img { width: 100%; height: 250px; object-fit: cover; border-radius: 5px; margin-bottom: 10px; }
+    .book h3 { font-size: 18px; margin: 10px 0 5px; }
+    .book p { font-size: 14px; color: #555; margin: 0 0 10px; }
+    .book button { background-color: #4CAF50; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
+    .book button:hover { background-color: #45a049; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Biblioteca Online</h1>
+    <nav>
+      <a href="historico.html">Histórico</a>
+      <a href="anunciar.html">Anunciar</a>
+      <a href="Config.html">Conta</a>
+      <a href="login.html">Sair</a>
+    </nav>
+  </header>
+  <div class="content">
+    <h2>Livros Disponíveis</h2>
+    <div class="book-list" id="livrosContainer"></div>
+  </div>
+  <script>
+    async function carregarLivrosDisponiveis() {
+      const container = document.getElementById("livrosContainer");
+      container.innerHTML = "<p>Carregando...</p>";
+
+      try {
+        const emprestimos = await fetch("http://localhost:3000/emprestimos").then(res => res.json());
+        const livros = await fetch("http://localhost:3000/livros").then(res => res.json());
+
+        // Pega os IDs dos livros que estão emprestados (e ainda não devolvidos)
+        const livrosEmprestadosIds = emprestimos
+          .filter(e => e.devolvido === 0)
+          .map(e => e.id_livro);
+
+        // Filtra os livros disponíveis
+        const livrosDisponiveis = livros.filter(l => !livrosEmprestadosIds.includes(l.livro_id));
+
+        container.innerHTML = "";
+
+        if (livrosDisponiveis.length === 0) {
+          container.innerHTML = "<p>Nenhum livro disponível no momento.</p>";
+          return;
+        }
+
+        livrosDisponiveis.forEach(livro => {
+          const div = document.createElement("div");
+          div.className = "book";
+          div.innerHTML = `
+            <h3>${livro.titulo}</h3>
+            <p>${livro.autor}</p>
+            <button onclick="pegarEmprestado(${livro.livro_id})">Pegar Emprestado</button>
+          `;
+          container.appendChild(div);
+        });
+
+      } catch (erro) {
+        console.error("Erro ao carregar livros:", erro);
+        container.innerHTML = "<p>Erro ao carregar os livros.</p>";
+      }
+    }
+
+    async function pegarEmprestado(idLivro) {
+      const idUsuario = 1; // Troque isso pelo ID real do usuário logado
+      const hoje = new Date().toISOString().split('T')[0];
+
+      try {
+        const resposta = await fetch("http://localhost:3000/emprestimos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ usuarioId: idUsuario, livroId: idLivro, dataEmprestimo: hoje })
+        });
+
+        if (resposta.ok) {
+          alert("Livro emprestado com sucesso!");
+          carregarLivrosDisponiveis();
+        } else {
+          alert("Erro ao realizar o empréstimo.");
+        }
+      } catch (erro) {
+        console.error(erro);
+        alert("Erro ao conectar ao servidor.");
+      }
+    }
+
+    carregarLivrosDisponiveis();
+  </script>
+</body>
+</html>

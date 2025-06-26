@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Histórico de Empréstimos</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+    }
+    header {
+      background-color: #4CAF50;
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+    nav a {
+      color: white;
+      margin-left: 15px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    .content {
+      padding: 30px;
+    }
+    h2 {
+      margin-top: 40px;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    .book-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+    }
+    .book {
+      background-color: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .book h3 {
+      font-size: 18px;
+      margin: 10px 0 5px;
+    }
+    .book p {
+      font-size: 14px;
+      color: #555;
+      margin: 0 0 10px;
+    }
+    .book button {
+      margin-top: 10px;
+      padding: 8px 12px;
+      font-size: 14px;
+      background-color: #ff7043;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .book button:hover {
+      background-color: #e64a19;
+    }
+    .no-history {
+      text-align: center;
+      font-size: 18px;
+      color: #777;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Histórico de Empréstimos</h1>
+    <nav>
+      <a href="home.html">Início</a>
+      <a href="anunciar.html">Anunciar</a>
+      <a href="config.html">Conta</a>
+      <a href="login.html">Sair</a>
+    </nav>
+  </header>
+
+  <div class="content">
+    <h2>Livros Pendentes</h2>
+    <div class="book-list" id="pendentesContainer"></div>
+    <div class="no-history" id="mensagemSemPendentes" style="display: none;">
+      Nenhum empréstimo pendente.
+    </div>
+
+    <h2>Histórico de Empréstimos</h2>
+    <div class="book-list" id="finalizadosContainer"></div>
+    <div class="no-history" id="mensagemSemHistorico" style="display: none;">
+      Você ainda não possui histórico de empréstimos finalizados.
+    </div>
+  </div>
+
+  <script>
+    const usuarioId = localStorage.getItem("usuarioId"); // Ou você pode guardar o ID do usuário em sessão
+
+    if (!usuarioId) {
+      alert("Usuário não logado");
+      window.location.href = "login.html";
+    }
+
+    async function carregarHistorico() {
+      try {
+        const resposta = await fetch(`http://localhost:3000/emprestimos?usuario_id=${usuarioId}`);
+        const emprestimos = await resposta.json();
+
+        const pendentes = emprestimos.filter(e => e.devolvido == 0);
+        const finalizados = emprestimos.filter(e => e.devolvido == 1);
+
+        atualizarContainer("pendentesContainer", "mensagemSemPendentes", pendentes, true);
+        atualizarContainer("finalizadosContainer", "mensagemSemHistorico", finalizados, false);
+
+      } catch (erro) {
+        console.error("Erro ao carregar histórico:", erro);
+        alert("Erro ao conectar ao servidor.");
+      }
+    }
+
+    function atualizarContainer(containerId, msgId, lista, podeDevolver) {
+      const container = document.getElementById(containerId);
+      const msg = document.getElementById(msgId);
+
+      container.innerHTML = "";
+
+      if (lista.length === 0) {
+        msg.style.display = "block";
+      } else {
+        msg.style.display = "none";
+        lista.forEach(emp => {
+          const div = document.createElement("div");
+          div.className = "book";
+          div.innerHTML = `
+            <h3>${emp.livro_titulo}</h3>
+            <p>Empréstimo: ${emp.data_emprestimo}</p>
+            <p>${emp.data_devolucao ? "Devolvido: " + emp.data_devolucao : ""}</p>
+            ${podeDevolver ? `<button onclick="devolverLivro(${emp.id})">Devolver</button>` : ""}
+          `;
+          container.appendChild(div);
+        });
+      }
+    }
+
+    async function devolverLivro(id) {
+      const confirmacao = confirm("Confirmar devolução do livro?");
+      if (!confirmacao) return;
+
+      try {
+        const resposta = await fetch(`http://localhost:3000/emprestimos/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ devolvido: 1, dataDevolucao: new Date().toISOString().split('T')[0] })
+        });
+
+        if (resposta.ok) {
+          carregarHistorico();
+        } else {
+          alert("Erro ao devolver o livro.");
+        }
+      } catch (erro) {
+        console.error("Erro ao devolver:", erro);
+        alert("Erro ao conectar ao servidor.");
+      }
+    }
+
+    carregarHistorico();
+  </script>
+</body>
+</html>
